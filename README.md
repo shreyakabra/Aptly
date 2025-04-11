@@ -45,7 +45,8 @@
 
 🗂️ Project Structure
 ---------------------
-`aptly/
+```bash
+aptly/
 ├── app.py                  # Streamlit UI
 ├── main.py                 # Backend logic for orchestrating agents
 ├── agents/
@@ -63,7 +64,8 @@
 ├── assets/                 # Sample JDs and CVs
 ├── aptly.db                # SQLite database file
 ├── requirements.txt        # Python dependencies
-└── README.md               # Project documentation`
+└── README.md               # Project documentation
+`
 
 * * * * *
 
