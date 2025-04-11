@@ -11,7 +11,7 @@ from utils.db_utils import (
     schedule_interviews,
     get_scheduled_interviews,
     update_interview_time,
-    cancel_interview
+    cancel_interview,
     save_shortlisted_candidate,
     get_shortlisted_candidates
 )
@@ -124,8 +124,15 @@ with tab4:
                 st.session_state["shortlisting"] = result  # Save for scheduler
                 st.subheader("📋 Shortlisting Result")
                 st.json(result)
+                if result.get("shortlisted"):
+                    save_shortlisted_candidate(candidate_name, job_title, score)
     else:
         st.warning("⚠️ Please upload and extract a CV in the 'CV Extractor' tab.")
+        
+    st.subheader("📋 Shortlisted Candidates")
+    shortlisted_df = get_shortlisted_candidates()
+    st.dataframe(shortlisted_df)
+
 
 # ---------------------- TAB 5: INTERVIEW SCHEDULER ----------------------
 with tab5:
