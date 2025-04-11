@@ -45,11 +45,6 @@
 
 🗂️ Project Structure
 ---------------------
-
-plaintext
-
-CopyEdit
-
 `aptly/
 ├── app.py                  # Streamlit UI
 ├── main.py                 # Backend logic for orchestrating agents
