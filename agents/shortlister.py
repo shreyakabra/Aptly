@@ -2,7 +2,7 @@ import json
 import sqlite3
 from typing import Dict
 
-DB_PATH = "aptly.db"  # Update path if needed
+DB_PATH = "db/aptly.db"  # Update path if needed
 
 def should_shortlist(candidate_score: Dict) -> bool:
     return (
@@ -61,6 +61,20 @@ def shortlist_decision(score_report: str, candidate_name: str, job_title: str) -
             "reason": "Invalid JSON input",
             "score": {}
         }
+        
+def get_shortlisted_candidates():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT candidate_name, job_title FROM shortlist_results
+        WHERE shortlisted = 1
+    """)
+    
+    rows = cursor.fetchall()
+    conn.close()
+
+    return [{"candidate_name": row[0], "job_title": row[1]} for row in rows]
 
 # CLI quick test
 if __name__ == "__main__":
