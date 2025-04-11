@@ -1,7 +1,11 @@
 import sqlite3
+import os
 
-# Connect to the database (creates it if it doesn't exist)
-conn = sqlite3.connect("aptly.db")
+# Optional: Create the db folder if it doesn't exist
+os.makedirs("db", exist_ok=True)
+
+# Connect to the database (it will be created if it doesn't exist)
+conn = sqlite3.connect("db/aptly.db")
 cursor = conn.cursor()
 
 # Create the shortlist_results table
@@ -24,4 +28,4 @@ CREATE TABLE IF NOT EXISTS shortlist_results (
 conn.commit()
 conn.close()
 
-print("Database and table created successfully.")
+print("Database and table initialized successfully.")
