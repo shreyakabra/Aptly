@@ -1,0 +1,26 @@
+John Doe  
+Email: john.doe@example.com  
+Phone: +1-555-123-4567  
+Location: San Francisco, CA  
+
+Professional Summary:  
+Highly motivated software engineer with over 5 years of experience in developing scalable web applications and backend systems. Strong background in Python, JavaScript, and cloud technologies.
+
+Skills:  
+- Programming: Python, JavaScript, Java  
+- Web: React, Node.js, Django, Flask  
+- Databases: PostgreSQL, MongoDB, MySQL  
+- Tools: Git, Docker, Kubernetes, AWS, Jenkins  
+
+Experience:  
+Software Engineer | TechCorp | Jan 2020 – Present  
+- Built microservices for a cloud-based analytics platform.  
+- Improved API performance by 30% through query optimization.  
+
+Junior Developer | CodeWorks | Jun 2018 – Dec 2019  
+- Assisted in building e-commerce features using Django.  
+- Wrote unit tests and improved code coverage by 20%.
+
+Education:  
+Bachelor of Science in Computer Science  
+University of California, Berkeley — 2014-2018
