@@ -65,7 +65,7 @@ aptly/
 ├── aptly.db                # SQLite database file
 ├── requirements.txt        # Python dependencies
 └── README.md               # Project documentation
-`
+```
 
 * * * * *
 
