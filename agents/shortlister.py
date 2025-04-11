@@ -36,31 +36,30 @@ def save_to_db(candidate_name: str, job_title: str, score: Dict, shortlisted: bo
     conn.commit()
     conn.close()
 
-def shortlist_decision(score_report: str, candidate_name: str, job_title: str) -> Dict:
-    try:
-        score = json.loads(score_report)
-        decision = should_shortlist(score)
-        reason = (
-            "Candidate meets all required criteria" if decision
-            else "Candidate did not meet one or more required criteria"
-        )
-        
-        # Save to DB
-        save_to_db(candidate_name, job_title, score, decision, reason)
-        
-        return {
-            "candidate_name": candidate_name,
-            "job_title": job_title,
-            "shortlisted": decision,
-            "reason": reason,
-            "score": score
-        }
-    except json.JSONDecodeError:
+def shortlist_decision(score: dict, candidate_name: str, job_title: str) -> Dict:
+    if not isinstance(score, dict):
         return {
             "shortlisted": False,
-            "reason": "Invalid JSON input",
+            "reason": "Invalid score input format",
             "score": {}
         }
+
+    decision = should_shortlist(score)
+    reason = (
+        "Candidate meets all required criteria" if decision
+        else "Candidate did not meet one or more required criteria"
+    )
+
+    # Save to DB
+    save_to_db(candidate_name, job_title, score, decision, reason)
+
+    return {
+        "candidate_name": candidate_name,
+        "job_title": job_title,
+        "shortlisted": decision,
+        "reason": reason,
+        "score": score
+    }
         
 def get_shortlisted_candidates():
     conn = sqlite3.connect(DB_PATH)

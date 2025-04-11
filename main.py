@@ -1,79 +1,57 @@
-import streamlit as st
-import pandas as pd
-from langchain_community.llms import Ollama
-from langchain_core.prompts import PromptTemplate
-from langchain.chains import LLMChain
-from langchain_core.runnables import Runnable
-from agents.candidate_scorer import score_candidate
+# main.py
+
 from agents.jd_summarizer import summarize_job_description
 from agents.cv_extractor import extract_cv_data
+from agents.candidate_scorer import score_candidate
+from agents.shortlister import shortlist_decision
+from utils.db_utils import schedule_interviews, get_scheduled_interviews, update_interview_time, cancel_interview
 
-# Load JD CSV
-@st.cache_data
-def load_jd_data():
-    df = pd.read_csv("data/job_description.csv", encoding="ISO-8859-1")
-    df.columns = df.columns.str.lower().str.strip().str.replace(" ", "_")
-    return df
 
-# Load Ollama LLM
-def load_llm():
-    return Ollama(model="mistral")
+def process_candidate(jd_text, cv_text, candidate_name=None, job_title=None, interview_date=None, interview_time=None):
+    try:
+        # Summarize the Job Description
+        jd_summary = summarize_job_description(jd_text)
 
-# Set up Streamlit App
-st.set_page_config(page_title="Aptly: AI Job Screening System", layout="wide")
-st.title("🧠 Aptly - AI-Powered Job Screening System")
+        # Extract CV Info
+        cv_data = extract_cv_data(cv_text)
 
-tab1, tab2, tab3 = st.tabs(["📄 JD Summarizer", "📤 CV Extractor", "📊 Candidate Scorer"])
+        # Candidate Scoring
+        score = score_candidate(jd_summary, cv_data)
 
-# ---------------------- TAB 1: JD SUMMARIZER ----------------------
-with tab1:
-    st.header("📄 Job Description Summarizer")
-    jd_df = load_jd_data()
-    jd_index = st.selectbox("Select a JD to summarize:", jd_df.index, format_func=lambda x: f"JD #{x+1}")
-    jd_text = jd_df.loc[jd_index, "job_description"]
+        # Shortlisting
+        shortlisting = shortlist_decision(score, candidate_name or cv_data.get("name", "Unknown"), job_title or "Unknown")
 
-    st.subheader("Job Description")
-    st.write(jd_text)
+        # Schedule Interview (if shortlisted)
+        interview_info = None
+        if shortlisting.get("shortlisted") and interview_date and interview_time:
+            interview_info = schedule_interviews(
+                candidate_name=shortlisting["score"].get("candidate_name", "Unknown"),
+                job_title=job_title,
+                date=interview_date,
+                time=interview_time
+            )
 
-    if st.button("Summarize JD"):
-        with st.spinner("Summarizing..."):
-            summary = summarize_job_description(jd_text)
-            st.subheader("🔍 JD Summary")
-            st.json(summary)
+        return {
+            "jd_summary": jd_summary,
+            "cv_data": cv_data,
+            "score": score,
+            "shortlisting": shortlisting,
+            "interview": interview_info
+        }
 
-# ---------------------- TAB 2: CV EXTRACTOR ----------------------
-with tab2:
-    st.header("📤 CV Information Extractor")
-    uploaded_cv = st.file_uploader("Upload a CV (.txt only)", type=["txt"])
+    except Exception as e:
+        return {
+            "error": f"Something went wrong: {str(e)}"
+        }
 
-    if uploaded_cv:
-        cv_text = uploaded_cv.read().decode("utf-8")
-        st.subheader("📄 CV Preview")
-        st.text(cv_text)
 
-        if st.button("Extract CV Info"):
-            with st.spinner("Extracting..."):
-                extracted = extract_cv_data(cv_text)
-                st.subheader("🧠 Extracted CV Information")
-                st.json(extracted)
+def fetch_interviews():
+    return get_scheduled_interviews()
 
-# ---------------------- TAB 3: CANDIDATE SCORER ----------------------
-with tab3:
-    st.header("📊 Candidate Scoring System")
-    selected_jd_idx = st.selectbox("Choose a JD for scoring:", jd_df.index, format_func=lambda x: f"JD #{x+1} - {jd_df.loc[x, 'job_title'] if 'job_title' in jd_df.columns else f'JD #{x+1}'}")
-    jd_text_for_score = jd_df.loc[selected_jd_idx, "job_description"]
-    uploaded_cv_for_score = st.file_uploader("Upload Candidate CV (.txt)", type=["txt"], key="cv_score")
 
-    if uploaded_cv_for_score:
-        cv_text_score = uploaded_cv_for_score.read().decode("utf-8")
-        st.subheader("📄 CV Preview")
-        st.text(cv_text_score)
+def reschedule_interview(interview_id, new_date, new_time):
+    return update_interview_time(interview_id, new_date, new_time)
 
-        if st.button("Score Candidate"):
-            with st.spinner("Scoring candidate against JD..."):
-                jd_summary = summarize_job_description(jd_text_for_score)
-                cv_data = extract_cv_data(cv_text_score)
-                score_result = score_candidate(jd_summary, cv_data)
 
-                st.subheader("📝 Candidate Score Report")
-                st.json(score_result)
+def remove_interview(interview_id):
+    return cancel_interview(interview_id)
